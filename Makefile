@@ -23,7 +23,7 @@ clean: ### Clean up
 _copy-system-detect-utility:
 	cp -f \
 		./scripts/makeops/system-detect/system-detect.sh \
-		./scripts/makeops/dependency-list/images/wrapper/assets/lib
+		./scripts/makeops/dependency-list/images/wrapper/assets/dependency-list/lib
 
 _build-examples:
 	( cd ./scripts/makeops/dependency-list/images/example-python-app; make build )

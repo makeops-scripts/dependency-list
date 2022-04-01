@@ -2,4 +2,4 @@ FROM ${IMAGE}
 
 COPY assets/ /
 
-ENTRYPOINT [ "/sbin/entrypoint.sh" ]
+ENTRYPOINT [ "/dependency-list/sbin/entrypoint.sh" ]

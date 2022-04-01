@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/sh
 
 # Detect libc version
 if ldd --version > /dev/null 2>&1; then
@@ -7,7 +7,7 @@ if ldd --version > /dev/null 2>&1; then
   # Print output as json to the stdout
   if [ -n "$version" ]; then
     printf \
-      "{\"name\":\"libc\",\"version\":\"%s\"}" \
+      "{\"Name\":\"libc\",\"Version\":\"%s\"}" \
       "$version"
   fi
 
@@ -18,7 +18,7 @@ elif apk info musl > /dev/null 2>&1; then
   # Print output as json to the stdout
   if [ -n "$version" ]; then
     printf \
-      "{\"name\":\"musl\",\"version\":\"%s\"}" \
+      "{\"Name\":\"musl\",\"Version\":\"%s\"}" \
       "$version"
   fi
 

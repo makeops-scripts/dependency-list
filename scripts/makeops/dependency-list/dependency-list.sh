@@ -6,6 +6,7 @@
 #   $ ?
 
 # ==============================================================================
+# Variables
 
 IMAGE_SUFFIX=${IMAGE_SUFFIX:-dl}
 SCRIPT_DIR=$([ -n "${BASH_SOURCE[0]}" ] && cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd || dirname "$(readlink -f "$0")")
@@ -15,18 +16,18 @@ OUTPUT_DIR=${OUTPUT_DIR:-$SCRIPT_DIR/results}
 # ==============================================================================
 # Public functions
 
-function dependency-list() { ### Find all the dependencies - mandatory: IMAGE|$1=[image name]; optional: TECH|$2=[technology to search for]
+function dependency-list() { ### Find all the dependencies - mandatory: $1|IMAGE=[image name]; optional: $2|TECH=[technology to search for]
 
-  image="${IMAGE:-$1}"
-  tech="${TECH:-$2}"
+  image="${1:-$IMAGE}"
+  tech="${2:-$TECH}"
 
-  [[ ! "$image" =~ ^makeops/dependency-list/* ]] && docker pull "$image"
+  docker pull "$image" 2> /dev/null ||:
   wrap-image "$image"
 
   _json_clean
   search-for-dependencies "$image" "$tech"
-  fetch-configuration-info "$image"
-  fetch-image-info "$image"
+  fetch-project-variables "$image"
+  fetch-image-details "$image"
   _json_print
 }
 
@@ -64,40 +65,44 @@ function search-for-dependencies() { ### Search for dependencies including files
   _json_add "$output"
 }
 
-function fetch-configuration-info() { ###  Fetch information about the project - mandatory: $1 [image name]
+function fetch-project-variables() { ###  Fetch variables of the project - mandatory: $1 [image name]
 
   image="$1"
 
   output=$(
     docker image inspect --format="{{json .Config.Env }}" "$image" \
-      | jq -r '.[]' \
-      | grep -E '^(BUILD_|PROJECT_|SERVICE_)' \
+      | jq -r ".[]" \
+      | grep -E "^(BUILD_|PROJECT_|SERVICE_)" \
       | awk '{sub(/=/," ");$1=$1;print $1,$2}' \
       | awk '{ printf "\"%s\":\"%s\",", $1,$2 }' \
       | head -c -1
   )
 
   if [ -n "$output" ]; then
-    _json_add "{\"configuration\":{$output}} "
+    _json_add "{\"Variables\":{$output}} "
   fi
 }
 
-function fetch-image-info() { ### Feth information about the image - mandatory: $1 [image name]
+function fetch-image-details() { ### Feth information about the image - mandatory: $1 [image name]
 
   image="$1"
 
   data=$(docker image inspect --format="{{ .Id }},{{ .Architecture }},{{ .Created }},{{ .Size }}" "$image")
   IFS=',' read -a data <<< "$data"
   i=0
-  layers=$(
+  list=$(
     IFS=$'\n';
     for layer in $(docker history --format '{{ .CreatedBy }}' --no-trunc "$image" | tac); do
       i=$((i + 1))
-      printf "\"%s\":\"%s\"," "$i" "$(echo "$layer" | sed 's/\/bin\/sh -c[ \t]*#(nop)[ \t]*//' | sed 's/\\/\\\\\\\\/g' | sed 's/"/\\\\"/g')"
+      printf "\"%s\":\"%s\"," "$i" "$(echo "$layer" | sed 's/\/bin\/sh -c[ \t]*#(nop)[ \t]*//' | sed 's/\\/\\\\/g' | sed 's/"/\\"/g')"
     done | head -c -1
   )
+  layers=
+  if [ -n "$list" ]; then
+    layers=$(printf ",\"Layers\":{%s}" "$list")
+  fi
 
-  _json_add "{\"image\":{\"name\":\"$image\",\"digest\":\"${data[0]}\",\"architecture\":\"${data[1]}\",\"date\":\"${data[2]}\",\"size\":${data[3]},\"layers\":{$layers}}} "
+  _json_add "{\"Image\":{\"Name\":\"$image\",\"Digest\":\"${data[0]}\",\"Architecture\":\"${data[1]}\",\"Date\":\"${data[2]}\",\"Size\":${data[3]}${layers}}} "
 }
 
 # ==============================================================================
@@ -113,7 +118,7 @@ function _json_clean() {
 
 function _json_add() {
 
-  printf "$*" >> "$OUTPUT_DIR/$OUTPUT_FILE"
+  printf "%s" "$*" >> "$OUTPUT_DIR/$OUTPUT_FILE"
 }
 
 function _json_print() {
@@ -130,6 +135,7 @@ function _json_sanitise() {
 }
 
 # ==============================================================================
+# Exports
 
 export -f dependency-list
 export -f dependency-list-clean
