@@ -5,7 +5,7 @@ eval "$(/dependency-list/lib/system-detect.sh)"
 
 # Detect selected system packages
 dep_list=
-for pkg in openssl libc zlib; do
+for pkg in openssl libc zlib gosu; do
   output="$(/dependency-list/include/filesystem/$pkg.sh)"
   if [ -n "$output" ]; then
     dep_list=$(printf "%s,%s" "$dep_list" "$output")
