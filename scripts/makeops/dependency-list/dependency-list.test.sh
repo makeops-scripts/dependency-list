@@ -33,7 +33,7 @@ function test-python() {
 
   make dependency-list IMAGE=python:3.10.4-alpine
   assert "$result" \
-    "linux" "alpine" "3.15.3" "openssl,musl,zlib" \
+    "linux" "alpine" "3.15.4" "openssl,musl,zlib" \
     "python" "3.10.4" "pip,setuptools,wheel"
 
   make dependency-list IMAGE=amazon/aws-lambda-python:3.6.2022.03.23.17
@@ -43,7 +43,7 @@ function test-python() {
 
   make dependency-list IMAGE=makeops/dependency-list/python-app:example
   assert "$result" \
-    "linux" "alpine" "3.15.3" "openssl,musl,zlib" \
+    "linux" "alpine" "3.15.4" "openssl,musl,zlib" \
     "python" "3.10.4" "Django,psycopg2-binary" \
     ".Variables.BUILD_,.Variables.PROJECT_"
 
@@ -52,16 +52,16 @@ function test-python() {
     "linux" "debian" "11.2" "openssl,libc,zlib" \
     "python" "3.9.2" "decorator,networkx,numpy,pip,scipy,setuptools,wheel"
 
-  # make dependency-list IMAGE=bitnami/python:latest
-  # make dependency-list IMAGE=nhsd/python:latest
-  # make dependency-list IMAGE=nhsd/python-app:latest
-  # make dependency-list IMAGE=nhsd/tools:latest
-  # make dependency-list IMAGE=bitnami/airflow:latest
+  make dependency-list IMAGE=bitnami/python:latest
+  make dependency-list IMAGE=nhsd/python:latest
+  make dependency-list IMAGE=nhsd/python-app:latest
+  make dependency-list IMAGE=nhsd/tools:latest
+  make dependency-list IMAGE=bitnami/airflow:latest
+
+  return 0
 }
 
 function test-java() {
-
-  :
 
   # make dependency-list IMAGE=openjdk:8-jre
   # make dependency-list IMAGE=openjdk:8-jdk
@@ -78,6 +78,8 @@ function test-java() {
   # make dependency-list IMAGE=amazoncorretto:17
 
   # make dependency-list IMAGE=springio/petclinic:latest
+
+  return 0
 }
 
 # ==============================================================================
